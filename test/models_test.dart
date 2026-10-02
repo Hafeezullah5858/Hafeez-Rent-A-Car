@@ -48,7 +48,7 @@ void main() {
     expect(restored.amount, -5);
     expect(restored.amount < 0, isTrue);
   });
-}
+
 
 test('current schema is the expected production schema', () {
   expect(LocalStore.currentSchema, 16);
