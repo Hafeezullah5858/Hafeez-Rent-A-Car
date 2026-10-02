@@ -357,7 +357,83 @@ class _DocumentCenterState extends State<DocumentCenter>{
       TextField(onChanged:(v)=>setState(()=>q=v),decoration:const InputDecoration(prefixIcon:Icon(Icons.search_rounded),hintText:'Search rental, customer, vehicle or plate')),
       const SizedBox(height:12),
       if(rentals.isEmpty)_emptyCard(context,Icons.description_outlined,'No rental records','Create a rental first to generate business documents.'),
-      ...rentals.map((r){final cu=widget.c.customer(r.customerId);final v=widget.c.vehicle(r.vehicleId);final pays=widget.c.payments.where((p)=>p.rentalId==r.id).toList();return Container(margin:const EdgeInsets.only(bottom:10),padding:const EdgeInsets.all(14),decoration:_surface(context),child:Column(children:[Row(children:[Container(width:44,height:44,decoration:BoxDecoration(color:HrcTheme.gold.withOpacity(.12),borderRadius:BorderRadius.circular(13)),child:const Icon(Icons.description_rounded,color:HrcTheme.gold)),const SizedBox(width:10),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(cu?.name??'Customer',style:const TextStyle(fontWeight:FontWeight.w900)),Text('${v?.name??'Vehicle'} • ${v?.plate??'—'} • ${enumName(r.status)}',style:TextStyle(fontSize:11,color:Theme.of(context).colorScheme.onSurfaceVariant))])),Text('Rs ${money(r.remaining)}',style:const TextStyle(fontWeight:FontWeight.w900))]),const SizedBox(height:10),Wrap(spacing:7,runSpacing:7,children:[OutlinedButton.icon(onPressed:()=>showRentalAgreement(context,widget.c,r),icon:const Icon(Icons.description_outlined,size:17),label:const Text('Agreement')),OutlinedButton.icon(onPressed:()=>showRentalReceipt(context,widget.c,r),icon:const Icon(Icons.receipt_long_outlined,size:17),label:Text('Receipt (${pays.length})')),if(r.actualReturnAt!=null)OutlinedButton.icon(onPressed:()=>showReturnDocument(context,widget.c,r),icon:const Icon(Icons.assignment_return_outlined,size:17),label:const Text('Return Settlement'))])]))})
+      ...rentals.map((r) {
+        final cu = widget.c.customer(r.customerId);
+        final v = widget.c.vehicle(r.vehicleId);
+        final pays = widget.c.payments.where((p) => p.rentalId == r.id).toList();
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: _surface(context),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: HrcTheme.gold.withOpacity(.12),
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: const Icon(
+                      Icons.description_rounded,
+                      color: HrcTheme.gold,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cu?.name ?? 'Customer',
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        Text(
+                          '${v?.name ?? 'Vehicle'} • ${v?.plate ?? '—'} • ${enumName(r.status)}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    'Rs ${money(r.remaining)}',
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 7,
+                runSpacing: 7,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => showRentalAgreement(context, widget.c, r),
+                    icon: const Icon(Icons.description_outlined, size: 17),
+                    label: const Text('Agreement'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => showRentalReceipt(context, widget.c, r),
+                    icon: const Icon(Icons.receipt_long_outlined, size: 17),
+                    label: Text('Receipt (${pays.length})'),
+                  ),
+                  if (r.actualReturnAt != null)
+                    OutlinedButton.icon(
+                      onPressed: () => showReturnDocument(context, widget.c, r),
+                      icon: const Icon(Icons.assignment_return_outlined, size: 17),
+                      label: const Text('Return Settlement'),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }),
     ]);
   }
   Widget _docAction(BuildContext context,String label,IconData icon,VoidCallback? onTap)=>OutlinedButton.icon(onPressed:onTap,icon:Icon(icon,size:18),label:Text(label));
@@ -460,7 +536,52 @@ class Dashboard extends StatelessWidget {
   Widget _alertRow(BuildContext context, IconData icon, String text) => ListTile(contentPadding: EdgeInsets.zero, dense: true, leading: Container(width: 34,height:34,decoration:BoxDecoration(color:const Color(0xFFE05A47).withOpacity(.1),borderRadius:BorderRadius.circular(10)),child:Icon(icon,size:17,color:const Color(0xFFE05A47))), title:Text(text,style:const TextStyle(fontWeight:FontWeight.w800,fontSize:12)));
 }
 
-Widget _metricCard(BuildContext context, String title, String value, IconData icon, Color accent) => Container(padding: const EdgeInsets.all(14), decoration: _surface(context), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [Container(width: 34, height: 34, decoration: BoxDecoration(color: accent.withOpacity(.10), borderRadius: BorderRadius.circular(10)), child: Icon(icon, size: 18, color: accent)), const Spacer()]), const Spacer(), Text(title, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)), const SizedBox(height: 3), Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17)))]);
+Widget _metricCard(
+  BuildContext context,
+  String title,
+  String value,
+  IconData icon,
+  Color accent,
+) =>
+    Container(
+      padding: const EdgeInsets.all(14),
+      decoration: _surface(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: accent.withOpacity(.10),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 18, color: accent),
+              ),
+              const Spacer(),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 17,
+            ),
+          ),
+        ],
+      ),
+    );
 Widget _quick(BuildContext context, String title, IconData icon, VoidCallback onTap) => Expanded(child: InkWell(borderRadius: BorderRadius.circular(16), onTap: onTap, child: Container(padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10), decoration: _surface(context), child: Column(children: [Icon(icon, size: 22), const SizedBox(height: 6), Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11))])));
 Widget _statusPill(String status) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5), decoration: BoxDecoration(color: const Color(0xFFE8F7EF), borderRadius: BorderRadius.circular(20)), child: Text(status, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xFF138A57))));
 BoxDecoration _surface(BuildContext context) => BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18), border: Border.all(color: Theme.of(context).dividerColor.withOpacity(.45)), boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 12, offset: Offset(0, 4))]);
@@ -1226,12 +1347,16 @@ Future<void> showRentalAgreement(BuildContext context, AppController c, Rental r
   );
 }
 Future<void> showReturnSettlement(BuildContext context, AppController c, Rental r) async {
-  final mileage = TextEditingController(text: (c.vehicle(r.vehicleId)?.currentMileage ?? 0).toStringAsFixed(0));
+  final mileage = TextEditingController(
+    text: (c.vehicle(r.vehicleId)?.currentMileage ?? 0).toStringAsFixed(0),
+  );
   final damage = TextEditingController(text: r.damageFee.toStringAsFixed(0));
   final refund = TextEditingController(text: r.depositBalance.toStringAsFixed(0));
   final note = TextEditingController();
+
   String condition = 'Good';
   String fuel = 'Full';
+
   await showDialog(
     context: context,
     builder: (ctx) => StatefulBuilder(
@@ -1240,136 +1365,142 @@ Future<void> showReturnSettlement(BuildContext context, AppController c, Rental 
         content: SizedBox(
           width: 500,
           child: SingleChildScrollView(
-            child: Column(children: [
-              TextField(controller: mileage, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Return mileage (km)', prefixIcon: Icon(Icons.speed_rounded))),
-              DropdownButtonFormField<String>(initialValue: condition, items: const ['Good', 'Minor scratches', 'Damage noted', 'Needs inspection'].map((x) => DropdownMenuItem(value: x, child: Text(x))).toList(), onChanged: (v) { if (v != null) set(() => condition = v); }, decoration: const InputDecoration(labelText: 'Vehicle condition')),
-              DropdownButtonFormField<String>(initialValue: fuel, items: const ['Full', '3/4', '1/2', '1/4', 'Empty'].map((x) => DropdownMenuItem(value: x, child: Text(x))).toList(), onChanged: (v) { if (v != null) set(() => fuel = v); }, decoration: const InputDecoration(labelText: 'Fuel level')),
-              TextField(controller: damage, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Damage charge (Rs)')),
-              TextField(controller: refund, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Deposit refund (Rs)')),
-              TextField(controller: note, maxLines: 2, decoration: const InputDecoration(labelText: 'Return notes')),
-              const SizedBox(height: 8),
-              Align(alignment: Alignment.centerLeft, child: Text('Outstanding rent: Rs ${money(r.remaining)} • Deposit available: Rs ${money(r.depositBalance)}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
-            ]),
+            child: Column(
+              children: [
+                TextField(
+                  controller: mileage,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Return mileage (km)',
+                    prefixIcon: Icon(Icons.speed_rounded),
+                  ),
+                ),
+                DropdownButtonFormField<String>(
+                  initialValue: condition,
+                  items: const [
+                    'Good',
+                    'Minor scratches',
+                    'Damage noted',
+                    'Needs inspection',
+                  ].map(
+                    (x) => DropdownMenuItem(
+                      value: x,
+                      child: Text(x),
+                    ),
+                  ).toList(),
+                  onChanged: (v) {
+                    if (v != null) set(() => condition = v);
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Vehicle condition',
+                  ),
+                ),
+                DropdownButtonFormField<String>(
+                  initialValue: fuel,
+                  items: const [
+                    'Full',
+                    '3/4',
+                    '1/2',
+                    '1/4',
+                    'Empty',
+                  ].map(
+                    (x) => DropdownMenuItem(
+                      value: x,
+                      child: Text(x),
+                    ),
+                  ).toList(),
+                  onChanged: (v) {
+                    if (v != null) set(() => fuel = v);
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Fuel level',
+                  ),
+                ),
+                TextField(
+                  controller: damage,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Damage charge (Rs)',
+                  ),
+                ),
+                TextField(
+                  controller: refund,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Deposit refund (Rs)',
+                  ),
+                ),
+                TextField(
+                  controller: note,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'Return notes',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Outstanding rent: Rs ${money(r.remaining)} • Deposit available: Rs ${money(r.depositBalance)}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton.icon(
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
             onPressed: () async {
               try {
-                await c.finalizeReturn(r, mileage: double.tryParse(mileage.text.replaceAll(',', '')) ?? 0, damageCharge: double.tryParse(damage.text.replaceAll(',', '')) ?? 0, depositRefund: double.tryParse(refund.text.replaceAll(',', '')) ?? 0, condition: condition, fuelLevel: fuel, note: note.text);
+                final returnedMileage =
+                    double.tryParse(mileage.text) ?? 0;
+                final damageFee = double.tryParse(damage.text) ?? 0;
+                final depositRefund = double.tryParse(refund.text) ?? 0;
+
+                final updated = r.copyWith(
+                  actualReturnAt: DateTime.now(),
+                  returnMileage: returnedMileage,
+                  damageFee: damageFee,
+                  depositRefund: depositRefund,
+                  returnCondition: condition,
+                  returnFuel: fuel,
+                  returnNote: note.text,
+                  status: RentalStatus.completed,
+                );
+
+                c.rentals = c.rentals
+                    .map((x) => x.id == r.id ? updated : x)
+                    .toList();
+
+                await c.persist();
+
                 if (ctx.mounted) Navigator.pop(ctx);
-                if (context.mounted) showError(context, const FormatException('Rental closed and return inspection saved.'));
               } catch (e) {
                 if (ctx.mounted) showError(ctx, e);
               }
             },
-            icon: const Icon(Icons.check_circle_rounded),
-            label: const Text('Close rental'),
+            child: const Text('Close Rental'),
           ),
         ],
       ),
     ),
   );
 }
-Future<void> showRentalDetails(BuildContext context, AppController c, Rental r) async {final payment=TextEditingController();final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);await showModalBottomSheet(context:context,isScrollControlled:true,showDragHandle:true,builder:(_)=>SafeArea(child:Padding(padding:const EdgeInsets.fromLTRB(18,8,18,22),child:SingleChildScrollView(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[Container(width:52,height:52,decoration:BoxDecoration(color:const Color(0xFFEAF3FF),borderRadius:BorderRadius.circular(16)),child:const Icon(Icons.key_rounded,color:Color(0xFF4169C7))),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(v?.name??'Vehicle',style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900)),Text(cu?.name??'Customer',style:const TextStyle(fontSize:11))])),_tinyTag(enumName(r.status))]),const SizedBox(height:18),Row(children:[Expanded(child:_miniKpi(context,'Total','Rs ${money(r.totalPayable)}',Icons.receipt_long_rounded)),const SizedBox(width:8),Expanded(child:_miniKpi(context,'Paid','Rs ${money(r.paidAmount)}',Icons.payments_rounded)),const SizedBox(width:8),Expanded(child:_miniKpi(context,'Due','Rs ${money(r.remaining)}',Icons.pending_actions_rounded))]),const SizedBox(height:18),Container(padding:const EdgeInsets.all(15),decoration:_surface(context),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Rental summary',style:TextStyle(fontWeight:FontWeight.w900,fontSize:15)),const SizedBox(height:12),_infoRow('Pickup',DateFormat('dd MMM yyyy').format(r.startAt)),_infoRow('Return',DateFormat('dd MMM yyyy').format(r.endAt)),_infoRow('Daily rate','Rs ${money(r.dailyRate)}'),_infoRow('Base rent','Rs ${money(r.totalRent)}'),_infoRow('Discount','Rs ${money(r.discount)}'),_infoRow('Tax/other','Rs ${money(r.tax)}'),_infoRow('Late fee','Rs ${money(r.lateFee)}'),_infoRow('Damage','Rs ${money(r.damageFee)}'),_infoRow('Total payable','Rs ${money(r.totalPayable)}'),_infoRow('Security deposit','Rs ${money(r.securityDeposit)}'),_infoRow('Deposit held','Rs ${money(r.depositBalance)}'),_infoRow('Payment method',r.paymentMethod),_infoRow('Pickup location',r.pickupLocation),_infoRow('Return location',r.returnLocation),_infoRow('Note',r.note)])),const SizedBox(height:16),Container(padding:const EdgeInsets.all(15),decoration:_surface(context),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Payment history',style:TextStyle(fontWeight:FontWeight.w900,fontSize:15)),const SizedBox(height:8),...(c.payments.where((p)=>p.rentalId==r.id).toList()..sort((a,b)=>b.date.compareTo(a.date))).isEmpty?[const Text('No payment transactions recorded yet.',style:TextStyle(fontSize:11))]: (c.payments.where((p)=>p.rentalId==r.id).toList()..sort((a,b)=>b.date.compareTo(a.date))).map((p)=>ListTile(contentPadding:EdgeInsets.zero,dense:true,leading:const Icon(Icons.payments_rounded),title:Text('Rs ${money(p.amount)}',style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text('${DateFormat('dd MMM yyyy, hh:mm a').format(p.date)} • ${p.method}${p.reference.isEmpty?'':' • ${p.reference}'}',style:const TextStyle(fontSize:10)),trailing:p.note.isEmpty?null:Text(p.note,style:const TextStyle(fontSize:9))))])),const SizedBox(height:16),if(r.remaining>0)TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Add payment (Rs)',prefixIcon:Icon(Icons.payments_rounded))),const SizedBox(height:14),Wrap(spacing:8,runSpacing:8,children:[if(r.remaining>0)FilledButton.icon(onPressed:()async{try{await c.addPayment(r,double.tryParse(payment.text.replaceAll(',',''))??0);if(context.mounted)Navigator.pop(context);}catch(e){if(context.mounted)showError(context,e);}},icon:const Icon(Icons.add_card_rounded),label:const Text('Add payment')),OutlinedButton.icon(onPressed:()=>showRentalAgreement(context,c,r),icon:const Icon(Icons.description_outlined),label:const Text('Agreement')),OutlinedButton.icon(onPressed:()=>showRentalReceipt(context,c,r),icon:const Icon(Icons.receipt_long_rounded),label:const Text('Receipt')),if(r.status==RentalStatus.active)FilledButton.icon(onPressed:()=>showReturnSettlement(context,c,r),icon:const Icon(Icons.assignment_return_rounded),label:const Text('Return & Close'))])])))));}
-String rentalReceiptText(AppController c,Rental r){final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);final b=c.settings;final pays=(c.payments.where((p)=>p.rentalId==r.id).toList()..sort((a,b)=>a.date.compareTo(b.date)));final lines=<String>[b.businessName.toUpperCase(),b.phone.isEmpty?'':b.phone,b.address.isEmpty?'':b.address,'='*42,'PAYMENT RECEIPT','Customer: ${cu?.name??'—'}','CNIC: ${cu?.cnic??'—'}','Vehicle: ${v?.name??'—'} • ${v?.plate??'—'}','Rental: ${DateFormat('dd MMM yyyy').format(r.startAt)} - ${DateFormat('dd MMM yyyy').format(r.endAt)}','Total Payable: ${b.currency} ${money(r.totalPayable)}','Paid: ${b.currency} ${money(r.paidAmount)}','Balance: ${b.currency} ${money(r.remaining)}',''];for(final p in pays){lines.add('${DateFormat('dd MMM yyyy, hh:mm a').format(p.date)} • ${p.method} • ${b.currency} ${money(p.amount)}${p.reference.isEmpty?'':' • Ref ${p.reference}'}');}lines.addAll(['','${b.footerNote}']);return lines.where((x)=>x.isNotEmpty).join('\n');}
-Future<void> showRentalReceipt(BuildContext context,AppController c,Rental r)async{final text=rentalReceiptText(c,r);await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Payment Receipt'),content:SizedBox(width:500,height:460,child:SingleChildScrollView(child:SelectableText(text,style:const TextStyle(fontFamily:'monospace',fontSize:12,height:1.45)))),actions:[TextButton.icon(onPressed:()async{await Clipboard.setData(ClipboardData(text:text));if(context.mounted)showSuccessMessage(context,'Receipt copied to clipboard.');},icon:const Icon(Icons.copy_rounded),label:const Text('Copy')),TextButton.icon(onPressed:()=>printRentalReceipt(c,r),icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF')),FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Done'))]));}
 
-Future<void> showReturnDocument(BuildContext context,AppController c,Rental r)async{final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);final returns=c.inspections.where((x)=>x.rentalId==r.id&&x.stage=='Return').toList()..sort((a,b)=>b.date.compareTo(a.date));if(returns.isEmpty)return;final ins=returns.first;final text='${c.settings.businessName.toUpperCase()}\n${c.settings.address}\n${'='*42}\nRETURN & SETTLEMENT\nCustomer: ${cu?.name??'—'}\nVehicle: ${v?.name??'—'} • ${v?.plate??'—'}\nReturn date: ${DateFormat('dd MMM yyyy, hh:mm a').format(ins.date)}\nMileage: ${money(ins.mileage)}\nFuel: ${ins.fuelLevel}\nCondition: ${ins.condition}\nDamage charge: ${c.settings.currency} ${money(ins.damageCharge)}\nDeposit held: ${c.settings.currency} ${money(r.depositBalance)}\nDeposit refunded: ${c.settings.currency} ${money(r.depositRefunded)}\nBalance due: ${c.settings.currency} ${money(r.remaining)}\nNotes: ${ins.note.isEmpty?'—':ins.note}\n\n${c.settings.footerNote}';await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Return & Settlement'),content:SizedBox(width:500,height:440,child:SingleChildScrollView(child:SelectableText(text,style:const TextStyle(fontFamily:'monospace',fontSize:12,height:1.45)))),actions:[TextButton.icon(onPressed:()async{await Clipboard.setData(ClipboardData(text:text));if(context.mounted)showSuccessMessage(context,'Return document copied.');},icon:const Icon(Icons.copy_rounded),label:const Text('Copy')),TextButton.icon(onPressed:()=>printReturnDocument(c,r),icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF')),FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Done'))]));}
-
-
-String _docHeader(AppController c) => c.settings.businessName.isEmpty ? 'HAFEEZ RENT A CAR' : c.settings.businessName.toUpperCase();
-
-Future<pw.MemoryImage?> _loadPdfLogo() async {
-  try {
-    final data = await rootBundle.load('assets/app_icon.png');
-    return pw.MemoryImage(data.buffer.asUint8List());
-  } catch (_) {
-    return null;
-  }
-}
-
-pw.Widget _pdfHeader(AppController c, String title, {pw.MemoryImage? logo, String? reference}) => pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-  pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
-    if (logo != null) pw.Container(width: 42, height: 42, margin: const pw.EdgeInsets.only(right: 10), child: pw.Image(logo, fit: pw.BoxFit.contain)),
-    pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-      pw.Text(_docHeader(c), style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-      if (c.settings.phone.isNotEmpty) pw.Text(c.settings.phone, style: const pw.TextStyle(fontSize: 9)),
-      if (c.settings.address.isNotEmpty) pw.Text(c.settings.address, style: const pw.TextStyle(fontSize: 9)),
-    ])),
-  ],),
-  pw.SizedBox(height: 12),
-  if (reference != null) pw.Text(reference, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-  pw.Container(width: double.infinity, padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-    decoration: pw.BoxDecoration(color: PdfColors.grey200, borderRadius: pw.BorderRadius.circular(4)),
-    child: pw.Text(title, style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold))),
-  pw.SizedBox(height: 12),
-]);
-
-pw.Widget _pdfRow(String label, String value) => pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 3), child: pw.Row(children: [pw.SizedBox(width: 125, child: pw.Text(label, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))), pw.Expanded(child: pw.Text(value, style: const pw.TextStyle(fontSize: 9)))]));
-
-Future<void> _printPdf(String filename, pw.Document doc) async {
-  await Printing.layoutPdf(onLayout: (format) async => doc.save(), name: filename);
-}
-
-Future<void> printRentalAgreement(AppController c, Rental r) async {
-  final cu=c.customer(r.customerId); final v=c.vehicle(r.vehicleId); final b=c.settings; final logo=await _loadPdfLogo(); final doc=pw.Document();
-  doc.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, margin: const pw.EdgeInsets.all(36), header: (_) => pw.Text('Rental Agreement', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)), footer: (_) => pw.Text(b.footerNote.isEmpty ? 'Hafeez Rent A Car' : b.footerNote, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)), build: (_) => [
-    _pdfHeader(c, 'RENTAL AGREEMENT', logo: logo, reference: 'Document: RA-${r.id.length > 8 ? r.id.substring(0,8).toUpperCase() : r.id.toUpperCase()}'),
-    _pdfRow('Customer', cu?.name??'—'), _pdfRow('Phone', cu?.phone??'—'), _pdfRow('CNIC', cu?.cnic??'—'),
-    _pdfRow('Vehicle', '${v?.name??'—'} • ${v?.plate??'—'}'), _pdfRow('Rental period','${DateFormat('dd MMM yyyy').format(r.startAt)} to ${DateFormat('dd MMM yyyy').format(r.endAt)}'),
-    _pdfRow('Daily rate','${b.currency} ${money(r.dailyRate)}'), _pdfRow('Total payable','${b.currency} ${money(r.totalPayable)}'), _pdfRow('Security deposit','${b.currency} ${money(r.securityDeposit)}'),
-    pw.SizedBox(height: 16), pw.Text('Terms & acknowledgement', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)), pw.SizedBox(height: 6),
-    pw.Text('The customer accepts responsibility for the vehicle during the rental period and agrees to the recorded charges, return condition and payment terms.', style: const pw.TextStyle(fontSize: 9, lineSpacing: 3)),
-    pw.SizedBox(height: 42), pw.Row(children: [pw.Expanded(child: pw.Column(children: [pw.Divider(), pw.Text('Customer signature', style: const pw.TextStyle(fontSize: 8))])), pw.SizedBox(width: 36), pw.Expanded(child: pw.Column(children: [pw.Divider(), pw.Text('Authorized signature', style: const pw.TextStyle(fontSize: 8))]))]),
-  ]);
-  await _printPdf('rental-agreement-${r.id}.pdf',doc);
-}
-
-Future<void> printRentalReceipt(AppController c, Rental r) async {
-  final cu=c.customer(r.customerId); final v=c.vehicle(r.vehicleId); final b=c.settings; final pays=(c.payments.where((p)=>p.rentalId==r.id).toList()..sort((a,b)=>a.date.compareTo(b.date))); final logo=await _loadPdfLogo(); final doc=pw.Document();
-  doc.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, margin: const pw.EdgeInsets.all(36), build: (_) => [
-    _pdfHeader(c, 'PAYMENT RECEIPT', logo: logo, reference: 'Document: PR-${r.id.length > 8 ? r.id.substring(0,8).toUpperCase() : r.id.toUpperCase()}'), _pdfRow('Customer',cu?.name??'—'), _pdfRow('CNIC',cu?.cnic??'—'), _pdfRow('Vehicle','${v?.name??'—'} • ${v?.plate??'—'}'),
-    _pdfRow('Rental','${DateFormat('dd MMM yyyy').format(r.startAt)} to ${DateFormat('dd MMM yyyy').format(r.endAt)}'), _pdfRow('Total payable','${b.currency} ${money(r.totalPayable)}'), _pdfRow('Paid','${b.currency} ${money(r.paidAmount)}'), _pdfRow('Balance','${b.currency} ${money(r.remaining)}'),
-    pw.SizedBox(height: 16), pw.Text('Payment transactions',style:pw.TextStyle(fontWeight:pw.FontWeight.bold,fontSize:11)), pw.SizedBox(height:6),
-    if(pays.isEmpty) pw.Text('No payment transactions recorded.',style:const pw.TextStyle(fontSize:9)) else pw.Table(border:pw.TableBorder.all(color:PdfColors.grey300), children:[pw.TableRow(children:['Date','Method','Reference','Amount'].map((x)=>pw.Padding(padding:const pw.EdgeInsets.all(5),child:pw.Text(x,style:pw.TextStyle(fontWeight:pw.FontWeight.bold,fontSize:8)))).toList()), ...pays.map((p)=>pw.TableRow(children:[DateFormat('dd MMM yyyy').format(p.date),p.method,p.reference.isEmpty?'—':p.reference,'${b.currency} ${money(p.amount)}'].map((x)=>pw.Padding(padding:const pw.EdgeInsets.all(5),child:pw.Text(x,style:const pw.TextStyle(fontSize:8)))).toList()))]),
-    pw.SizedBox(height: 18), pw.Text(b.footerNote,style:const pw.TextStyle(fontSize:8,color:PdfColors.grey600)),
-  ])); await _printPdf('payment-receipt-${r.id}.pdf',doc);
-}
-
-Future<void> printReturnDocument(AppController c, Rental r) async {
-  final cu=c.customer(r.customerId); final v=c.vehicle(r.vehicleId); final b=c.settings; final returns=c.inspections.where((x)=>x.rentalId==r.id&&x.stage=='Return').toList()..sort((a,b)=>b.date.compareTo(a.date)); if(returns.isEmpty) return; final ins=returns.first; final logo=await _loadPdfLogo(); final doc=pw.Document();
-  doc.addPage(pw.MultiPage(pageFormat:PdfPageFormat.a4,margin:const pw.EdgeInsets.all(36),build:(_)=>[
-    _pdfHeader(c,'RETURN & SETTLEMENT', logo: logo, reference: 'Document: RS-${r.id.length > 8 ? r.id.substring(0,8).toUpperCase() : r.id.toUpperCase()}'), _pdfRow('Customer',cu?.name??'—'), _pdfRow('Vehicle','${v?.name??'—'} • ${v?.plate??'—'}'), _pdfRow('Return date',DateFormat('dd MMM yyyy, hh:mm a').format(ins.date)), _pdfRow('Mileage',money(ins.mileage)), _pdfRow('Fuel',ins.fuelLevel), _pdfRow('Condition',ins.condition), _pdfRow('Damage charge','${b.currency} ${money(ins.damageCharge)}'), _pdfRow('Deposit held','${b.currency} ${money(r.depositBalance)}'), _pdfRow('Deposit refunded','${b.currency} ${money(r.depositRefunded)}'), _pdfRow('Balance due','${b.currency} ${money(r.remaining)}'),
-    pw.SizedBox(height:14),pw.Text('Notes',style:pw.TextStyle(fontWeight:pw.FontWeight.bold,fontSize:11)),pw.SizedBox(height:5),pw.Text(ins.note.isEmpty?'—':ins.note,style:const pw.TextStyle(fontSize:9)),pw.SizedBox(height:28),pw.Row(children:[pw.Expanded(child:pw.Column(children:[pw.Divider(),pw.Text('Customer signature',style:const pw.TextStyle(fontSize:8))])),pw.SizedBox(width:36),pw.Expanded(child:pw.Column(children:[pw.Divider(),pw.Text('Authorized signature',style:const pw.TextStyle(fontSize:8))]))]),
-  ])); await _printPdf('return-settlement-${r.id}.pdf',doc);
-}
-
-Future<void> showMaintenanceDialog(BuildContext context, AppController c) async {
-  if (c.vehicles.isEmpty) return;
-  String vehicle = c.vehicles.first.id; DateTime date = DateTime.now(), next = DateTime.now().add(const Duration(days: 90));
-  final type=TextEditingController(text:'Service'), cost=TextEditingController(), mileage=TextEditingController(), workshop=TextEditingController(), note=TextEditingController();
-  await showDialog(context: context, builder: (_) => StatefulBuilder(builder: (ctx, set) => AlertDialog(
-    title: const Text('Maintenance'),
-    content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      DropdownButtonFormField<String>(initialValue: vehicle, items: c.vehicles.map((v)=>DropdownMenuItem(value:v.id,child:Text(v.name))).toList(), onChanged:(v){if(v!=null)set(()=>vehicle=v);}, decoration: const InputDecoration(labelText:'Vehicle')),
-      TextField(controller:type,decoration:const InputDecoration(labelText:'Work type')), TextField(controller:cost,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Cost')), TextField(controller:mileage,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Mileage')), TextField(controller:workshop,decoration:const InputDecoration(labelText:'Workshop')), TextField(controller:note,decoration:const InputDecoration(labelText:'Notes')),
-      ListTile(title:const Text('Service date'),subtitle:Text(DateFormat('dd MMM yyyy').format(date)),trailing:TextButton(onPressed:()async{final d=await showDatePicker(context:ctx,firstDate:DateTime(2020),lastDate:DateTime(2100),initialDate:date);if(d!=null)set(()=>date=d);},child:const Text('Change'))),
-      ListTile(title:const Text('Next service'),subtitle:Text(DateFormat('dd MMM yyyy').format(next)),trailing:TextButton(onPressed:()async{final d=await showDatePicker(context:ctx,firstDate:date,lastDate:DateTime(2100),initialDate:next);if(d!=null)set(()=>next=d);},child:const Text('Change'))),
-    ])),
-    actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('Cancel')),FilledButton(onPressed:()async{await c.addMaintenance(MaintenanceRecord(id:c.uuid.v4(),vehicleId:vehicle,type:type.text,cost:double.tryParse(cost.text)??0,date:date,mileage:double.tryParse(mileage.text)??0,workshop:workshop.text,note:note.text,nextService:next,updatedAtMs:DateTime.now().millisecondsSinceEpoch));if(ctx.mounted)Navigator.pop(ctx);},child:const Text('Save'))],
-  )));
-}
-Future<void> showFuelDialog(BuildContext context, AppController c) async {
-  if (c.vehicles.isEmpty) return; String vehicle=c.vehicles.first.id;
-  final litres=TextEditingController(),amount=TextEditingController(),mileage=TextEditingController(),station=TextEditingController();
-  await showDialog(context:context,builder:(_)=>StatefulBuilder(builder:(ctx,set)=>AlertDialog(
-    title:const Text('Fuel'),
-    content:Column(mainAxisSize:MainAxisSize.min,children:[DropdownButtonFormField<String>(initialValue:vehicle,items:c.vehicles.map((v)=>DropdownMenuItem(value:v.id,child:Text(v.name))).toList(),onChanged:(v){if(v!=null)set(()=>vehicle=v);},decoration:const InputDecoration(labelText:'Vehicle')),TextField(controller:litres,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Litres')),TextField(controller:amount,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Amount (Rs)')),TextField(controller:mileage,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Mileage')),TextField(controller:station,decoration:const InputDecoration(labelText:'Fuel station'))]),
-    actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('Cancel')),FilledButton(onPressed:()async{try{await c.addFuel(FuelRecord(id:c.uuid.v4(),vehicleId:vehicle,litres:double.tryParse(litres.text)??0,amount:double.tryParse(amount.text)??0,date:DateTime.now(),mileage:double.tryParse(mileage.text)??0,station:station.text,updatedAtMs:DateTime.now().millisecondsSinceEpoch));if(ctx.mounted)Navigator.pop(ctx);}catch(e){if(ctx.mounted)showError(ctx,e);}},child:const Text('Save'))],
-  )));
-}
 Future<void> showEntry(BuildContext context, AppController c, {EntryType type=EntryType.driving, EarningSource? source, LedgerEntry? existing}) async {
   var t=existing?.type??type; var s=existing?.source??source; String? v=existing?.vehicleId??(c.vehicles.isEmpty?null:c.vehicles.first.id); DateTime date=existing?.date??DateTime.now();
   final cat=TextEditingController(text:existing?.category??(source==null?'':enumName(source!))), amount=TextEditingController(text:existing?.amount.toStringAsFixed(2)??''), note=TextEditingController(text:existing?.note??'');
@@ -1406,19 +1537,151 @@ void showSuccessMessage(BuildContext context, String message) {
     );
 }
 
-Future<void> showTransactionSuccess(BuildContext context,AppController c,EntryType type,double amount,String? vehicleId,EarningSource? source)async{
-  final v=vehicleId==null?null:c.vehicle(vehicleId);
-  await showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>Container(decoration:BoxDecoration(color:Theme.of(context).scaffoldBackgroundColor,borderRadius:const BorderRadius.vertical(top:Radius.circular(30))),padding:const EdgeInsets.fromLTRB(22,18,22,28),child:Column(mainAxisSize:MainAxisSize.min,children:[
-    Container(width:44,height:5,decoration:BoxDecoration(color:Theme.of(context).colorScheme.outlineVariant,borderRadius:BorderRadius.circular(10))),const SizedBox(height:22),
-    Container(width:68,height:68,decoration:BoxDecoration(color:const Color(0xFFE8F7EF),shape:BoxShape.circle),child:const Icon(Icons.check_rounded,size:38,color:Color(0xFF0E9F6E))),const SizedBox(height:14),
-    Text(type==EntryType.expense?'Expense recorded successfully':'Income recorded successfully',style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900),textAlign:TextAlign.center),
-    const SizedBox(height:5),Text(v==null?'Business ledger updated':v.name,style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontWeight:FontWeight.w600)),const SizedBox(height:12),
-    Text('${type==EntryType.expense?'-':'+'} Rs ${money(amount)}',style:TextStyle(fontSize:30,fontWeight:FontWeight.w900,color:type==EntryType.expense?const Color(0xFFE05A47):const Color(0xFF0E9F6E))),
-    if(source!=null)Padding(padding:const EdgeInsets.only(top:5),child:Text('Source: ${enumName(source)}',style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant))),
-    const SizedBox(height:18),Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Theme.of(context).colorScheme.surfaceContainerHighest,borderRadius:BorderRadius.circular(18)),child:Row(children:[const Icon(Icons.insights_rounded),const SizedBox(width:10),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Dashboard updated',style:TextStyle(fontWeight:FontWeight.w800)),Text('Your latest transaction is now included in the business summary.',style:TextStyle(fontSize:12,color:Theme.of(context).colorScheme.onSurfaceVariant))]))])),const SizedBox(height:16),SizedBox(width:double.infinity,child:FilledButton(onPressed:()=>Navigator.pop(context),style:FilledButton.styleFrom(minimumSize:const Size.fromHeight(52),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(15))),child:const Text('Done',style:TextStyle(fontWeight:FontWeight.w800))))
-  ])));
-}
+Future<void> showTransactionSuccess(
+  BuildContext context,
+  AppController c,
+  EntryType type,
+  double amount,
+  String? vehicleId,
+  EarningSource? source,
+) async {
+  final v = vehicleId == null ? null : c.vehicle(vehicleId);
 
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(30),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 44,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 22),
+          Container(
+            width: 68,
+            height: 68,
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8F7EF),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_rounded,
+              size: 38,
+              color: Color(0xFF0E9F6E),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            type == EntryType.expense
+                ? 'Expense recorded successfully'
+                : 'Income recorded successfully',
+            style: const TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 5),
+          Text(
+            v == null ? 'Business ledger updated' : v.name,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${type == EntryType.expense ? '-' : '+'} Rs ${money(amount)}',
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w900,
+              color: type == EntryType.expense
+                  ? const Color(0xFFE05A47)
+                  : const Color(0xFF0E9F6E),
+            ),
+          ),
+          if (source != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Text(
+                'Source: ${enumName(source)}',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.insights_rounded),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Dashboard updated',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      Text(
+                        'Your latest transaction is now included in the business summary.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.pop(context),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              child: const Text(
+                'Done',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 Future<void> showPaymentDialog(BuildContext context, AppController c) async {
   final open = c.rentals.where((r)=>r.remaining>0 && r.status!=RentalStatus.cancelled).toList();
