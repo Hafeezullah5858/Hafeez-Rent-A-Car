@@ -342,7 +342,7 @@ class _DocumentCenterState extends State<DocumentCenter>{
     return ListView(padding:const EdgeInsets.fromLTRB(18,14,18,30),children:[
       _moduleHeader(context,'Document Center','Professional agreements, receipts and rental settlement documents','Business Settings',Icons.description_rounded,()=>showBusinessSettings(context,widget.c)),
       const SizedBox(height:14),
-      Row(children:[Expanded(child:_miniKpi(context,'Agreements','${widget.c.rentals.length}',Icons.description_outlined)),const SizedBox(width:8),Expanded(child:_miniKpi(context,'Receipts','${widget.c.payments.length}',Icons.receipt_long_rounded)),const SizedBox(width:8),Expanded(child:_miniKpi(context,'Returns','${widget.c.inspections.where((x)=>x.stage==\'Return\').length}',Icons.assignment_return_rounded))]),
+      Row(children:[Expanded(child:_miniKpi(context,'Agreements','${widget.c.rentals.length}',Icons.description_outlined)),const SizedBox(width:8),Expanded(child:_miniKpi(context,'Receipts','${widget.c.payments.length}',Icons.receipt_long_rounded)),const SizedBox(width:8),Expanded(child:_miniKpi(context,'Returns','${widget.c.inspections.where((x)=>x.stage=='Return').length}',Icons.assignment_return_rounded))]),
       const SizedBox(height:14),
       Container(padding:const EdgeInsets.all(14),decoration:_surface(context),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
         const Text('Document templates',style:TextStyle(fontWeight:FontWeight.w900,fontSize:15)),const SizedBox(height:6),
@@ -518,6 +518,84 @@ class Reports extends StatelessWidget {
 }
 Widget _reconRow(BuildContext context,String label,double value,IconData icon)=>Padding(padding:const EdgeInsets.only(bottom:9),child:Row(children:[Icon(icon,size:17),const SizedBox(width:9),Expanded(child:Text(label,style:const TextStyle(fontSize:11,fontWeight:FontWeight.w700))),Text('Rs ${money(value)}',style:const TextStyle(fontWeight:FontWeight.w900,fontSize:11))]));
 Widget _qualityRow(BuildContext context,String label,int value,bool ok)=>ListTile(contentPadding:EdgeInsets.zero,dense:true,leading:Icon(ok?Icons.check_circle_rounded:Icons.warning_amber_rounded,color:ok?const Color(0xFF0E9F6E):const Color(0xFFE05A47)),title:Text(label,style:const TextStyle(fontSize:11,fontWeight:FontWeight.w700)),trailing:Text('$value',style:const TextStyle(fontWeight:FontWeight.w900)));
+Widget _infoRow(String label, String value) => Padding(
+  padding: const EdgeInsets.symmetric(vertical: 4),
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(
+        flex: 4,
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+        ),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        flex: 6,
+        child: Text(
+          value,
+          textAlign: TextAlign.right,
+          style: const TextStyle(fontSize: 11),
+        ),
+      ),
+    ],
+  ),
+);
+
+Widget _sectionTitle(BuildContext context, String title, String subtitle) =>
+    Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+          ),
+        ),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+
+Widget _reportKpi(
+  BuildContext context,
+  String label,
+  double value,
+  IconData icon,
+) =>
+    Container(
+      padding: const EdgeInsets.all(14),
+      decoration: _surface(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            'Rs ${money(value)}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+          ),
+        ],
+      ),
+    );
 
 
 DateTime _periodStart(String period) {
@@ -549,7 +627,7 @@ Future<void> showVehiclePeriodReport(BuildContext context,AppController c) async
       const SizedBox(height:8),
       Builder(builder:(_){final r=c.vehiclePeriodReport(vehicleId,from,to);return Container(padding:const EdgeInsets.all(12),decoration:_surface(context),child:Column(children:[_reconRow(context,'Rental billed',r.rentalBilled,Icons.receipt_long_rounded),_reconRow(context,'Rental collected',r.rentalCollected,Icons.payments_rounded),_reconRow(context,'Other income',r.otherIncome,Icons.trending_up_rounded),_reconRow(context,'Total income',r.income,Icons.account_balance_wallet_rounded),_reconRow(context,'Fuel expense',r.fuelExpense,Icons.local_gas_station_rounded),_reconRow(context,'Maintenance',r.maintenanceExpense,Icons.build_rounded),_reconRow(context,'Other expenses',r.ledgerExpenses,Icons.receipt_long_rounded),_reconRow(context,'Total expenses',r.expenses,Icons.trending_down_rounded),_reconRow(context,'NET RESULT',r.net,Icons.account_balance_rounded),_reconRow(context,'Current outstanding',r.outstanding,Icons.pending_actions_rounded),const Divider(),_infoRow('Rentals','${r.rentalCount}'),_infoRow('Fuel','${r.fuelLitres.toStringAsFixed(1)} L'),_infoRow('Services','${r.serviceCount}') ]));})
     ]))),
-    actions:[TextButton(onPressed:()=>Navigator.pop(dialogCtx),child:const Text('Close')),OutlinedButton.icon(onPressed:()async{final csv=c.exportVehiclePeriodCsv(vehicleId,from,to);try{final dir=await getTemporaryDirectory();final v=c.vehicle(vehicleId);final file=File('${dir.path}/vehicle-${(v?.plate.isNotEmpty??false)?v!.plate:v?.name??'report'}-${DateFormat('yyyyMMdd').format(from)}-${DateFormat('yyyyMMdd').format(to)}.csv');await file.writeAsString(csv);await Share.shareXFiles([XFile(file.path)],text:'Vehicle performance report');}catch(_){await Clipboard.setData(ClipboardData(text:csv));if(context.mounted)showTransactionSuccess(context,'CSV copied to clipboard.');}},icon:const Icon(Icons.download_rounded),label:const Text('Download CSV')),FilledButton.icon(onPressed:()async{final r=c.vehiclePeriodReport(vehicleId,from,to);await printVehiclePeriodReport(c,r);},icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF'))]
+    actions:[TextButton(onPressed:()=>Navigator.pop(dialogCtx),child:const Text('Close')),OutlinedButton.icon(onPressed:()async{final csv=c.exportVehiclePeriodCsv(vehicleId,from,to);try{final dir=await getTemporaryDirectory();final v=c.vehicle(vehicleId);final file=File('${dir.path}/vehicle-${(v?.plate.isNotEmpty??false)?v!.plate:v?.name??'report'}-${DateFormat('yyyyMMdd').format(from)}-${DateFormat('yyyyMMdd').format(to)}.csv');await file.writeAsString(csv);await Share.shareXFiles([XFile(file.path)],text:'Vehicle performance report');}catch(_){await Clipboard.setData(ClipboardData(text:csv));if(context.mounted)showSuccessMessage(context,'CSV copied to clipboard.');}},icon:const Icon(Icons.download_rounded),label:const Text('Download CSV')),FilledButton.icon(onPressed:()async{final r=c.vehiclePeriodReport(vehicleId,from,to);await printVehiclePeriodReport(c,r);},icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF'))]
   )));
 }
 
@@ -598,7 +676,7 @@ Future<void> showFleetComparison(BuildContext context,AppController c) async {
         ]);
       }))
     ])),
-    actions:[TextButton(onPressed:()=>Navigator.pop(dialogCtx),child:const Text('Close')),OutlinedButton.icon(onPressed:()async{final csv=c.exportVehicleComparisonCsv(from,to);try{final dir=await getTemporaryDirectory();final file=File('${dir.path}/fleet-comparison-${DateFormat('yyyyMMdd').format(from)}-${DateFormat('yyyyMMdd').format(to)}.csv');await file.writeAsString(csv);await Share.shareXFiles([XFile(file.path)],text:'Fleet vehicle comparison');}catch(_){await Clipboard.setData(ClipboardData(text:csv));if(context.mounted)showTransactionSuccess(context,'Comparison CSV copied to clipboard.');}},icon:const Icon(Icons.download_rounded),label:const Text('Download CSV')),FilledButton.icon(onPressed:()async{await printFleetComparison(c,from,to);},icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF'))]
+    actions:[TextButton(onPressed:()=>Navigator.pop(dialogCtx),child:const Text('Close')),OutlinedButton.icon(onPressed:()async{final csv=c.exportVehicleComparisonCsv(from,to);try{final dir=await getTemporaryDirectory();final file=File('${dir.path}/fleet-comparison-${DateFormat('yyyyMMdd').format(from)}-${DateFormat('yyyyMMdd').format(to)}.csv');await file.writeAsString(csv);await Share.shareXFiles([XFile(file.path)],text:'Fleet vehicle comparison');}catch(_){await Clipboard.setData(ClipboardData(text:csv));if(context.mounted)showSuccessMessage(context,'Comparison CSV copied to clipboard.');}},icon:const Icon(Icons.download_rounded),label:const Text('Download CSV')),FilledButton.icon(onPressed:()async{await printFleetComparison(c,from,to);},icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF'))]
   )));
 }
 
@@ -628,18 +706,354 @@ Future<void> printVehiclePeriodReport(AppController c,VehiclePeriodReport r) asy
   ])); await Printing.sharePdf(bytes:await doc.save(),filename:'vehicle-performance-${v?.plate??'report'}.pdf');
 }
 
-Future<void> showReconciliation(BuildContext context,AppController c)async{final paymentTotal=c.payments.fold(0.0,(s,p)=>s+p.amount);final rentalPaid=c.rentals.fold(0.0,(s,r)=>s+r.paidAmount);final ledgerIncome=c.entries.where((e)=>e.type!=EntryType.expense).fold(0.0,(s,e)=>s+e.amount);await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Finance reconciliation'),content:SizedBox(width:520,child:Column(mainAxisSize:MainAxisSize.min,children:[_infoRow('Payment transactions','Rs ${money(paymentTotal)}'),_infoRow('Rental paid totals','Rs ${money(rentalPaid)}'),_infoRow('Ledger income','Rs ${money(ledgerIncome)}'),const Divider(),_infoRow('Payment vs rental variance','Rs ${money(paymentTotal-rentalPaid)}'),_infoRow('Payment vs ledger variance','Rs ${money(paymentTotal-ledgerIncome)}'),const SizedBox(height:10),const Align(alignment:Alignment.centerLeft,child:Text('Variances should be investigated before a period is closed. This screen is a control check, not an accounting certification.',style:TextStyle(fontSize:10)))])),actions:[TextButton.icon(onPressed:()=>printRentalAgreement(c,r),icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF')),FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Close'))]));}
-Future<void> showVehicleProfitability(BuildContext context,AppController c)async{final list=[...c.vehicles]..sort((a,b)=>(c.vehicleIncome(b.id)-c.vehicleExpense(b.id)).compareTo(c.vehicleIncome(a.id)-c.vehicleExpense(a.id)));await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Fleet profitability'),content:SizedBox(width:620,height:480,child:list.isEmpty?const Center(child:Text('No vehicles yet.')):ListView.separated(itemCount:list.length,separatorBuilder:(_,__)=>const Divider(height:1),itemBuilder:(_,i){final v=list[i];final inc=c.vehicleIncome(v.id);final exp=c.vehicleExpense(v.id);return ListTile(leading:const Icon(Icons.directions_car_rounded),title:Text('${v.name}${v.plate.isEmpty?'':' • ${v.plate}'}',style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text('Income Rs ${money(inc)} • Expense Rs ${money(exp)}'),trailing:Text('Net Rs ${money(inc-exp)}',style:TextStyle(fontWeight:FontWeight.w900,color:inc-exp>=0?const Color(0xFF0E9F6E):const Color(0xFFE05A47)));})),actions:[FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Close'))]));}
-Future<void> showRentalDialog(BuildContext context, AppController c) async {final available=c.vehicles.where((v)=>v.status==VehicleStatus.available).toList();if(c.customers.isEmpty||available.isEmpty){showError(context,const FormatException('Add a customer and keep a vehicle available first.'));return;}String customer=c.customers.first.id,vehicle=available.first.id,paymentMethod='Cash';DateTime start=DateTime.now(),end=DateTime.now().add(const Duration(days:1));final rate=TextEditingController(),deposit=TextEditingController(),paid=TextEditingController(),discount=TextEditingController(),tax=TextEditingController(),mileageLimit=TextEditingController(),pickup=TextEditingController(),returnLoc=TextEditingController(),note=TextEditingController();await showDialog(context:context,builder:(_)=>StatefulBuilder(builder:(ctx,set)=>AlertDialog(title:const Text('New Rental / Booking'),content:SizedBox(width:500,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[DropdownButtonFormField<String>(initialValue:customer,items:c.customers.map((x)=>DropdownMenuItem(value:x.id,child:Text(x.name))).toList(),onChanged:(v){if(v!=null)set(()=>customer=v);},decoration:const InputDecoration(labelText:'Customer')),DropdownButtonFormField<String>(initialValue:vehicle,items:available.map((x)=>DropdownMenuItem(value:x.id,child:Text('${x.name} ${x.plate}'))).toList(),onChanged:(v){if(v!=null)set(()=>vehicle=v);},decoration:const InputDecoration(labelText:'Vehicle')),Row(children:[Expanded(child:TextField(controller:rate,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Daily rent'))),const SizedBox(width:8),Expanded(child:TextField(controller:deposit,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Security deposit')))]),Row(children:[Expanded(child:TextField(controller:discount,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Discount'))),const SizedBox(width:8),Expanded(child:TextField(controller:tax,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Tax/other')))]),TextField(controller:paid,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Advance / payment')),DropdownButtonFormField<String>(initialValue:paymentMethod,items:const['Cash','Bank','Easypaisa','JazzCash','Card','Other'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v){if(v!=null)set(()=>paymentMethod=v);},decoration:const InputDecoration(labelText:'Payment method')),TextField(controller:mileageLimit,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Mileage limit (km, optional)')),Row(children:[Expanded(child:TextField(controller:pickup,decoration:const InputDecoration(labelText:'Pickup location'))),const SizedBox(width:8),Expanded(child:TextField(controller:returnLoc,decoration:const InputDecoration(labelText:'Return location')))]),TextField(controller:note,decoration:const InputDecoration(labelText:'Notes')),ListTile(title:const Text('Pickup'),subtitle:Text(DateFormat('dd MMM yyyy').format(start)),trailing:TextButton(onPressed:()async{final d=await showDatePicker(context:ctx,firstDate:DateTime(2020),lastDate:DateTime(2100),initialDate:start);if(d!=null)set(()=>start=d);},child:const Text('Change'))),ListTile(title:const Text('Return'),subtitle:Text(DateFormat('dd MMM yyyy').format(end)),trailing:TextButton(onPressed:()async{final d=await showDatePicker(context:ctx,firstDate:start,lastDate:DateTime(2100),initialDate:end);if(d!=null)set(()=>end=d);},child:const Text('Change'))])),)),actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('Cancel')),FilledButton(onPressed:()async{try{final r=double.tryParse(rate.text.replaceAll(',',''))??0,dep=double.tryParse(deposit.text.replaceAll(',',''))??0,pay=double.tryParse(paid.text.replaceAll(',',''))??0,disc=double.tryParse(discount.text.replaceAll(',',''))??0,t=double.tryParse(tax.text.replaceAll(',',''))??0;await c.addRental(customerId:customer,vehicleId:vehicle,start:start,end:end,rate:r,deposit:dep,paid:pay,note:note.text);final created=c.rentals.last;final updated=created.copyWith(discount:disc,tax:t,paymentMethod:paymentMethod,mileageLimit:double.tryParse(mileageLimit.text)??0,pickupLocation:pickup.text,returnLocation:returnLoc.text);c.rentals=c.rentals.map((x)=>x.id==created.id?updated:x).toList();await c.persist();if(ctx.mounted)Navigator.pop(ctx);}catch(e){if(ctx.mounted)showError(ctx,e);}},child:const Text('Create booking'))])));}
+Future<void> showReconciliation(BuildContext context,AppController c)async{final paymentTotal=c.payments.fold(0.0,(s,p)=>s+p.amount);final rentalPaid=c.rentals.fold(0.0,(s,r)=>s+r.paidAmount);final ledgerIncome=c.entries.where((e)=>e.type!=EntryType.expense).fold(0.0,(s,e)=>s+e.amount);await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Finance reconciliation'),content:SizedBox(width:520,child:Column(mainAxisSize:MainAxisSize.min,children:[_infoRow('Payment transactions','Rs ${money(paymentTotal)}'),_infoRow('Rental paid totals','Rs ${money(rentalPaid)}'),_infoRow('Ledger income','Rs ${money(ledgerIncome)}'),const Divider(),_infoRow('Payment vs rental variance','Rs ${money(paymentTotal-rentalPaid)}'),_infoRow('Payment vs ledger variance','Rs ${money(paymentTotal-ledgerIncome)}'),const SizedBox(height:10),const Align(alignment:Alignment.centerLeft,child:Text('Variances should be investigated before a period is closed. This screen is a control check, not an accounting certification.',style:TextStyle(fontSize:10)))])),actions:[FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Close'))]));}
+Future<void> showVehicleProfitability(BuildContext context, AppController c) async {
+  final list = [...c.vehicles]
+    ..sort((a, b) => (c.vehicleIncome(b.id) - c.vehicleExpense(b.id))
+        .compareTo(c.vehicleIncome(a.id) - c.vehicleExpense(a.id)));
+
+  await showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Fleet profitability'),
+      content: SizedBox(
+        width: 620,
+        height: 480,
+        child: list.isEmpty
+            ? const Center(child: Text('No vehicles yet.'))
+            : ListView.separated(
+                itemCount: list.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (_, i) {
+                  final v = list[i];
+                  final inc = c.vehicleIncome(v.id);
+                  final exp = c.vehicleExpense(v.id);
+                  return ListTile(
+                    leading: const Icon(Icons.directions_car_rounded),
+                    title: Text(
+                      '${v.name}${v.plate.isEmpty ? '' : ' • ${v.plate}'}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    subtitle: Text(
+                      'Income Rs ${money(inc)} • Expense Rs ${money(exp)}',
+                    ),
+                    trailing: Text(
+                      'Net Rs ${money(inc - exp)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: inc - exp >= 0
+                            ? const Color(0xFF0E9F6E)
+                            : const Color(0xFFE05A47),
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+}
+Future<void> showRentalDialog(BuildContext context, AppController c) async {
+  final available = c.vehicles
+      .where((v) => v.status == VehicleStatus.available)
+      .toList();
+
+  if (c.customers.isEmpty || available.isEmpty) {
+    showError(
+      context,
+      const FormatException(
+        'Add a customer and keep a vehicle available first.',
+      ),
+    );
+    return;
+  }
+
+  String customer = c.customers.first.id;
+  String vehicle = available.first.id;
+  String paymentMethod = 'Cash';
+  DateTime start = DateTime.now();
+  DateTime end = DateTime.now().add(const Duration(days: 1));
+
+  final rate = TextEditingController();
+  final deposit = TextEditingController();
+  final paid = TextEditingController();
+  final discount = TextEditingController();
+  final tax = TextEditingController();
+  final mileageLimit = TextEditingController();
+  final pickup = TextEditingController();
+  final returnLoc = TextEditingController();
+  final note = TextEditingController();
+
+  await showDialog(
+    context: context,
+    builder: (_) => StatefulBuilder(
+      builder: (ctx, set) => AlertDialog(
+        title: const Text('New Rental / Booking'),
+        content: SizedBox(
+          width: 500,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: customer,
+                  items: c.customers
+                      .map(
+                        (x) => DropdownMenuItem(
+                          value: x.id,
+                          child: Text(x.name),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) set(() => customer = v);
+                  },
+                  decoration: const InputDecoration(labelText: 'Customer'),
+                ),
+                DropdownButtonFormField<String>(
+                  initialValue: vehicle,
+                  items: available
+                      .map(
+                        (x) => DropdownMenuItem(
+                          value: x.id,
+                          child: Text('${x.name} ${x.plate}'),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) set(() => vehicle = v);
+                  },
+                  decoration: const InputDecoration(labelText: 'Vehicle'),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: rate,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Daily rent',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: deposit,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Security deposit',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: discount,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Discount',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: tax,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Tax/other',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                TextField(
+                  controller: paid,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Advance / payment',
+                  ),
+                ),
+                DropdownButtonFormField<String>(
+                  initialValue: paymentMethod,
+                  items: const [
+                    'Cash',
+                    'Bank',
+                    'Easypaisa',
+                    'JazzCash',
+                    'Card',
+                    'Other',
+                  ]
+                      .map(
+                        (x) => DropdownMenuItem(
+                          value: x,
+                          child: Text(x),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) set(() => paymentMethod = v);
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Payment method',
+                  ),
+                ),
+                TextField(
+                  controller: mileageLimit,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Mileage limit (km, optional)',
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: pickup,
+                        decoration: const InputDecoration(
+                          labelText: 'Pickup location',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: returnLoc,
+                        decoration: const InputDecoration(
+                          labelText: 'Return location',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                TextField(
+                  controller: note,
+                  decoration: const InputDecoration(labelText: 'Notes'),
+                ),
+                ListTile(
+                  title: const Text('Pickup'),
+                  subtitle: Text(DateFormat('dd MMM yyyy').format(start)),
+                  trailing: TextButton(
+                    onPressed: () async {
+                      final d = await showDatePicker(
+                        context: ctx,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                        initialDate: start,
+                      );
+                      if (d != null) set(() => start = d);
+                    },
+                    child: const Text('Change'),
+                  ),
+                ),
+                ListTile(
+                  title: const Text('Return'),
+                  subtitle: Text(DateFormat('dd MMM yyyy').format(end)),
+                  trailing: TextButton(
+                    onPressed: () async {
+                      final d = await showDatePicker(
+                        context: ctx,
+                        firstDate: start,
+                        lastDate: DateTime(2100),
+                        initialDate: end,
+                      );
+                      if (d != null) set(() => end = d);
+                    },
+                    child: const Text('Change'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              try {
+                final r =
+                    double.tryParse(rate.text.replaceAll(',', '')) ?? 0;
+                final dep =
+                    double.tryParse(deposit.text.replaceAll(',', '')) ?? 0;
+                final pay =
+                    double.tryParse(paid.text.replaceAll(',', '')) ?? 0;
+                final disc =
+                    double.tryParse(discount.text.replaceAll(',', '')) ?? 0;
+                final t =
+                    double.tryParse(tax.text.replaceAll(',', '')) ?? 0;
+
+                await c.addRental(
+                  customerId: customer,
+                  vehicleId: vehicle,
+                  start: start,
+                  end: end,
+                  rate: r,
+                  deposit: dep,
+                  paid: pay,
+                  note: note.text,
+                );
+
+                final created = c.rentals.last;
+                final updated = created.copyWith(
+                  discount: disc,
+                  tax: t,
+                  paymentMethod: paymentMethod,
+                  mileageLimit:
+                      double.tryParse(mileageLimit.text) ?? 0,
+                  pickupLocation: pickup.text,
+                  returnLocation: returnLoc.text,
+                );
+                c.rentals = c.rentals
+                    .map((x) => x.id == created.id ? updated : x)
+                    .toList();
+                await c.persist();
+
+                if (ctx.mounted) Navigator.pop(ctx);
+              } catch (e) {
+                if (ctx.mounted) showError(ctx, e);
+              }
+            },
+            child: const Text('Create booking'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 Future<void> showRentalAgreement(BuildContext context,AppController c,Rental r)async{final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Rental Agreement'),content:SizedBox(width:480,child:SingleChildScrollView(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('HAFEEZ RENT A CAR',style:TextStyle(fontSize:18,fontWeight:FontWeight.w900,letterSpacing:1.2)),const SizedBox(height:12),_infoRow('Customer',cu?.name??'—'),_infoRow('Phone',cu?.phone??'—'),_infoRow('CNIC',cu?.cnic??'—'),_infoRow('Vehicle',v?.name??'—'),_infoRow('Registration',v?.plate??'—'),_infoRow('Rental period','${DateFormat('dd MMM yyyy').format(r.startAt)} → ${DateFormat('dd MMM yyyy').format(r.endAt)}'),_infoRow('Daily rate','Rs ${money(r.dailyRate)}'),_infoRow('Total payable','Rs ${money(r.totalPayable)}'),_infoRow('Security deposit','Rs ${money(r.securityDeposit)}'),const SizedBox(height:12),const Divider(),const Text('Customer accepts responsibility for the vehicle during the rental period and agrees to the recorded charges, return condition and payment terms.',style:TextStyle(fontSize:11,height:1.45)),const SizedBox(height:18),Row(children:[Expanded(child:Text('Customer signature: __________________',style:TextStyle(fontSize:10))),Expanded(child:Text('Authorized signature: __________________',style:TextStyle(fontSize:10)))])])),actions:[FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Close'))]));}
 
 Future<void> showReturnSettlement(BuildContext context,AppController c,Rental r)async{final mileage=TextEditingController(text:(c.vehicle(r.vehicleId)?.currentMileage??0).toStringAsFixed(0));final damage=TextEditingController(text:r.damageFee.toStringAsFixed(0));final refund=TextEditingController(text:r.depositBalance.toStringAsFixed(0));final note=TextEditingController();String condition='Good',fuel='Full';await showDialog(context:context,builder:(ctx)=>StatefulBuilder(builder:(ctx,set)=>AlertDialog(title:const Text('Return & Close Rental'),content:SizedBox(width:500,child:SingleChildScrollView(child:Column(children:[TextField(controller:mileage,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Return mileage (km)',prefixIcon:Icon(Icons.speed_rounded))),DropdownButtonFormField<String>(initialValue:condition,items:const['Good','Minor scratches','Damage noted','Needs inspection'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v){if(v!=null)set(()=>condition=v);},decoration:const InputDecoration(labelText:'Vehicle condition')),DropdownButtonFormField<String>(initialValue:fuel,items:const['Full','3/4','1/2','1/4','Empty'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v){if(v!=null)set(()=>fuel=v);},decoration:const InputDecoration(labelText:'Fuel level')),TextField(controller:damage,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Damage charge (Rs)')),TextField(controller:refund,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Deposit refund (Rs)')),TextField(controller:note,maxLines:2,decoration:const InputDecoration(labelText:'Return notes')),const SizedBox(height:8),Align(alignment:Alignment.centerLeft,child:Text('Outstanding rent: Rs ${money(r.remaining)} • Deposit available: Rs ${money(r.depositBalance)}',style:const TextStyle(fontSize:11,fontWeight:FontWeight.w700)))])),actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('Cancel')),FilledButton.icon(onPressed:()async{try{await c.finalizeReturn(r,mileage:double.tryParse(mileage.text.replaceAll(',',''))??0,damageCharge:double.tryParse(damage.text.replaceAll(',',''))??0,depositRefund:double.tryParse(refund.text.replaceAll(',',''))??0,condition:condition,fuelLevel:fuel,note:note.text);if(ctx.mounted)Navigator.pop(ctx);if(context.mounted)showError(context,const FormatException('Rental closed and return inspection saved.'));}catch(e){if(ctx.mounted)showError(ctx,e);}},icon:const Icon(Icons.check_circle_rounded),label:const Text('Close rental'))]));}
 
 Future<void> showRentalDetails(BuildContext context, AppController c, Rental r) async {final payment=TextEditingController();final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);await showModalBottomSheet(context:context,isScrollControlled:true,showDragHandle:true,builder:(_)=>SafeArea(child:Padding(padding:const EdgeInsets.fromLTRB(18,8,18,22),child:SingleChildScrollView(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[Container(width:52,height:52,decoration:BoxDecoration(color:const Color(0xFFEAF3FF),borderRadius:BorderRadius.circular(16)),child:const Icon(Icons.key_rounded,color:Color(0xFF4169C7))),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(v?.name??'Vehicle',style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900)),Text(cu?.name??'Customer',style:const TextStyle(fontSize:11))])),_tinyTag(enumName(r.status))]),const SizedBox(height:18),Row(children:[Expanded(child:_miniKpi(context,'Total','Rs ${money(r.totalPayable)}',Icons.receipt_long_rounded)),const SizedBox(width:8),Expanded(child:_miniKpi(context,'Paid','Rs ${money(r.paidAmount)}',Icons.payments_rounded)),const SizedBox(width:8),Expanded(child:_miniKpi(context,'Due','Rs ${money(r.remaining)}',Icons.pending_actions_rounded))]),const SizedBox(height:18),Container(padding:const EdgeInsets.all(15),decoration:_surface(context),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Rental summary',style:TextStyle(fontWeight:FontWeight.w900,fontSize:15)),const SizedBox(height:12),_infoRow('Pickup',DateFormat('dd MMM yyyy').format(r.startAt)),_infoRow('Return',DateFormat('dd MMM yyyy').format(r.endAt)),_infoRow('Daily rate','Rs ${money(r.dailyRate)}'),_infoRow('Base rent','Rs ${money(r.totalRent)}'),_infoRow('Discount','Rs ${money(r.discount)}'),_infoRow('Tax/other','Rs ${money(r.tax)}'),_infoRow('Late fee','Rs ${money(r.lateFee)}'),_infoRow('Damage','Rs ${money(r.damageFee)}'),_infoRow('Total payable','Rs ${money(r.totalPayable)}'),_infoRow('Security deposit','Rs ${money(r.securityDeposit)}'),_infoRow('Deposit held','Rs ${money(r.depositBalance)}'),_infoRow('Payment method',r.paymentMethod),_infoRow('Pickup location',r.pickupLocation),_infoRow('Return location',r.returnLocation),_infoRow('Note',r.note)])),const SizedBox(height:16),Container(padding:const EdgeInsets.all(15),decoration:_surface(context),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Payment history',style:TextStyle(fontWeight:FontWeight.w900,fontSize:15)),const SizedBox(height:8),...(c.payments.where((p)=>p.rentalId==r.id).toList()..sort((a,b)=>b.date.compareTo(a.date))).isEmpty?[const Text('No payment transactions recorded yet.',style:TextStyle(fontSize:11))]: (c.payments.where((p)=>p.rentalId==r.id).toList()..sort((a,b)=>b.date.compareTo(a.date))).map((p)=>ListTile(contentPadding:EdgeInsets.zero,dense:true,leading:const Icon(Icons.payments_rounded),title:Text('Rs ${money(p.amount)}',style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text('${DateFormat('dd MMM yyyy, hh:mm a').format(p.date)} • ${p.method}${p.reference.isEmpty?'':' • ${p.reference}'}',style:const TextStyle(fontSize:10)),trailing:p.note.isEmpty?null:Text(p.note,style:const TextStyle(fontSize:9))))])),const SizedBox(height:16),if(r.remaining>0)TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Add payment (Rs)',prefixIcon:Icon(Icons.payments_rounded))),const SizedBox(height:14),Wrap(spacing:8,runSpacing:8,children:[if(r.remaining>0)FilledButton.icon(onPressed:()async{try{await c.addPayment(r,double.tryParse(payment.text.replaceAll(',',''))??0);if(context.mounted)Navigator.pop(context);}catch(e){if(context.mounted)showError(context,e);}},icon:const Icon(Icons.add_card_rounded),label:const Text('Add payment')),OutlinedButton.icon(onPressed:()=>showRentalAgreement(context,c,r),icon:const Icon(Icons.description_outlined),label:const Text('Agreement')),OutlinedButton.icon(onPressed:()=>showRentalReceipt(context,c,r),icon:const Icon(Icons.receipt_long_rounded),label:const Text('Receipt')),if(r.status==RentalStatus.active)FilledButton.icon(onPressed:()=>showReturnSettlement(context,c,r),icon:const Icon(Icons.assignment_return_rounded),label:const Text('Return & Close'))])])))));}
-Future<String> rentalReceiptText(AppController c,Rental r){final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);final b=c.settings;final pays=(c.payments.where((p)=>p.rentalId==r.id).toList()..sort((a,b)=>a.date.compareTo(b.date)));final lines=<String>[b.businessName.toUpperCase(),b.phone.isEmpty?'':b.phone,b.address.isEmpty?'':b.address,'='*42,'PAYMENT RECEIPT','Customer: ${cu?.name??'—'}','CNIC: ${cu?.cnic??'—'}','Vehicle: ${v?.name??'—'} • ${v?.plate??'—'}','Rental: ${DateFormat('dd MMM yyyy').format(r.startAt)} - ${DateFormat('dd MMM yyyy').format(r.endAt)}','Total Payable: ${b.currency} ${money(r.totalPayable)}','Paid: ${b.currency} ${money(r.paidAmount)}','Balance: ${b.currency} ${money(r.remaining)}',''];for(final p in pays){lines.add('${DateFormat('dd MMM yyyy, hh:mm a').format(p.date)} • ${p.method} • ${b.currency} ${money(p.amount)}${p.reference.isEmpty?'':' • Ref ${p.reference}');}lines.addAll(['','${b.footerNote}']);return lines.where((x)=>x.isNotEmpty).join('\n');}
-Future<void> showRentalReceipt(BuildContext context,AppController c,Rental r)async{final text=rentalReceiptText(c,r);await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Payment Receipt'),content:SizedBox(width:500,height:460,child:SingleChildScrollView(child:SelectableText(text,style:const TextStyle(fontFamily:'monospace',fontSize:12,height:1.45)))),actions:[TextButton.icon(onPressed:()async{await Clipboard.setData(ClipboardData(text:text));if(context.mounted)showTransactionSuccess(context,'Receipt copied to clipboard.');},icon:const Icon(Icons.copy_rounded),label:const Text('Copy')),TextButton.icon(onPressed:()=>printRentalReceipt(c,r),icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF')),FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Done'))]));}
+String rentalReceiptText(AppController c,Rental r){final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);final b=c.settings;final pays=(c.payments.where((p)=>p.rentalId==r.id).toList()..sort((a,b)=>a.date.compareTo(b.date)));final lines=<String>[b.businessName.toUpperCase(),b.phone.isEmpty?'':b.phone,b.address.isEmpty?'':b.address,'='*42,'PAYMENT RECEIPT','Customer: ${cu?.name??'—'}','CNIC: ${cu?.cnic??'—'}','Vehicle: ${v?.name??'—'} • ${v?.plate??'—'}','Rental: ${DateFormat('dd MMM yyyy').format(r.startAt)} - ${DateFormat('dd MMM yyyy').format(r.endAt)}','Total Payable: ${b.currency} ${money(r.totalPayable)}','Paid: ${b.currency} ${money(r.paidAmount)}','Balance: ${b.currency} ${money(r.remaining)}',''];for(final p in pays){lines.add('${DateFormat('dd MMM yyyy, hh:mm a').format(p.date)} • ${p.method} • ${b.currency} ${money(p.amount)}${p.reference.isEmpty?'':' • Ref ${p.reference}'}');}lines.addAll(['','${b.footerNote}']);return lines.where((x)=>x.isNotEmpty).join('\n');}
+Future<void> showRentalReceipt(BuildContext context,AppController c,Rental r)async{final text=rentalReceiptText(c,r);await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Payment Receipt'),content:SizedBox(width:500,height:460,child:SingleChildScrollView(child:SelectableText(text,style:const TextStyle(fontFamily:'monospace',fontSize:12,height:1.45)))),actions:[TextButton.icon(onPressed:()async{await Clipboard.setData(ClipboardData(text:text));if(context.mounted)showSuccessMessage(context,'Receipt copied to clipboard.');},icon:const Icon(Icons.copy_rounded),label:const Text('Copy')),TextButton.icon(onPressed:()=>printRentalReceipt(c,r),icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF')),FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Done'))]));}
 
-Future<void> showReturnDocument(BuildContext context,AppController c,Rental r)async{final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);final returns=c.inspections.where((x)=>x.rentalId==r.id&&x.stage=='Return').toList()..sort((a,b)=>b.date.compareTo(a.date));if(returns.isEmpty)return;final ins=returns.first;final text='${c.settings.businessName.toUpperCase()}\n${c.settings.address}\n${'='*42}\nRETURN & SETTLEMENT\nCustomer: ${cu?.name??'—'}\nVehicle: ${v?.name??'—'} • ${v?.plate??'—'}\nReturn date: ${DateFormat('dd MMM yyyy, hh:mm a').format(ins.date)}\nMileage: ${money(ins.mileage)}\nFuel: ${ins.fuelLevel}\nCondition: ${ins.condition}\nDamage charge: ${c.settings.currency} ${money(ins.damageCharge)}\nDeposit held: ${c.settings.currency} ${money(r.depositBalance)}\nDeposit refunded: ${c.settings.currency} ${money(r.depositRefunded)}\nBalance due: ${c.settings.currency} ${money(r.remaining)}\nNotes: ${ins.note.isEmpty?'—':ins.note}\n\n${c.settings.footerNote}';await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Return & Settlement'),content:SizedBox(width:500,height:440,child:SingleChildScrollView(child:SelectableText(text,style:const TextStyle(fontFamily:'monospace',fontSize:12,height:1.45)))),actions:[TextButton.icon(onPressed:()async{await Clipboard.setData(ClipboardData(text:text));if(context.mounted)showTransactionSuccess(context,'Return document copied.');},icon:const Icon(Icons.copy_rounded),label:const Text('Copy')),TextButton.icon(onPressed:()=>printReturnDocument(c,r),icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF')),FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Done'))]));}
+Future<void> showReturnDocument(BuildContext context,AppController c,Rental r)async{final cu=c.customer(r.customerId);final v=c.vehicle(r.vehicleId);final returns=c.inspections.where((x)=>x.rentalId==r.id&&x.stage=='Return').toList()..sort((a,b)=>b.date.compareTo(a.date));if(returns.isEmpty)return;final ins=returns.first;final text='${c.settings.businessName.toUpperCase()}\n${c.settings.address}\n${'='*42}\nRETURN & SETTLEMENT\nCustomer: ${cu?.name??'—'}\nVehicle: ${v?.name??'—'} • ${v?.plate??'—'}\nReturn date: ${DateFormat('dd MMM yyyy, hh:mm a').format(ins.date)}\nMileage: ${money(ins.mileage)}\nFuel: ${ins.fuelLevel}\nCondition: ${ins.condition}\nDamage charge: ${c.settings.currency} ${money(ins.damageCharge)}\nDeposit held: ${c.settings.currency} ${money(r.depositBalance)}\nDeposit refunded: ${c.settings.currency} ${money(r.depositRefunded)}\nBalance due: ${c.settings.currency} ${money(r.remaining)}\nNotes: ${ins.note.isEmpty?'—':ins.note}\n\n${c.settings.footerNote}';await showDialog(context:context,builder:(_)=>AlertDialog(title:const Text('Return & Settlement'),content:SizedBox(width:500,height:440,child:SingleChildScrollView(child:SelectableText(text,style:const TextStyle(fontFamily:'monospace',fontSize:12,height:1.45)))),actions:[TextButton.icon(onPressed:()async{await Clipboard.setData(ClipboardData(text:text));if(context.mounted)showSuccessMessage(context,'Return document copied.');},icon:const Icon(Icons.copy_rounded),label:const Text('Copy')),TextButton.icon(onPressed:()=>printReturnDocument(c,r),icon:const Icon(Icons.print_rounded),label:const Text('Print / PDF')),FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Done'))]));}
 
 
 String _docHeader(AppController c) => c.settings.businessName.isEmpty ? 'HAFEEZ RENT A CAR' : c.settings.businessName.toUpperCase();
@@ -758,6 +1172,17 @@ Future<void> showEntry(BuildContext context, AppController c, {EntryType type=En
 
 Widget _fieldLabel(String text)=>Padding(padding:const EdgeInsets.only(bottom:7),child:Text(text,style:const TextStyle(fontSize:12,fontWeight:FontWeight.w800,letterSpacing:.2)));
 
+void showSuccessMessage(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+}
+
 Future<void> showTransactionSuccess(BuildContext context,AppController c,EntryType type,double amount,String? vehicleId,EarningSource? source)async{
   final v=vehicleId==null?null:c.vehicle(vehicleId);
   await showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>Container(decoration:BoxDecoration(color:Theme.of(context).scaffoldBackgroundColor,borderRadius:const BorderRadius.vertical(top:Radius.circular(30))),padding:const EdgeInsets.fromLTRB(22,18,22,28),child:Column(mainAxisSize:MainAxisSize.min,children:[
@@ -788,7 +1213,7 @@ Future<void> showPaymentDialog(BuildContext context, AppController c) async {
       const SizedBox(height:10),TextField(controller:reference,decoration:const InputDecoration(labelText:'Reference / receipt no.')),
       const SizedBox(height:10),TextField(controller:note,maxLines:2,decoration:const InputDecoration(labelText:'Note')),
     ]))),
-    actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('Cancel')),FilledButton.icon(onPressed:()async{try{final r=c.rentals.firstWhere((x)=>x.id==rentalId);await c.addPayment(r,double.tryParse(amount.text.replaceAll(',',''))??0,method:method,reference:reference.text,note:note.text);if(ctx.mounted)Navigator.pop(ctx);if(context.mounted)showTransactionSuccess(context,'Payment recorded successfully.');}catch(e){if(ctx.mounted)showError(ctx,e);}},icon:const Icon(Icons.check_rounded),label:const Text('Record payment'))]
+    actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('Cancel')),FilledButton.icon(onPressed:()async{try{final r=c.rentals.firstWhere((x)=>x.id==rentalId);await c.addPayment(r,double.tryParse(amount.text.replaceAll(',',''))??0,method:method,reference:reference.text,note:note.text);if(ctx.mounted)Navigator.pop(ctx);if(context.mounted)showSuccessMessage(context,'Payment recorded successfully.');}catch(e){if(ctx.mounted)showError(ctx,e);}},icon:const Icon(Icons.check_rounded),label:const Text('Record payment'))]
   )));
 }
 
