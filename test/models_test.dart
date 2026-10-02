@@ -49,7 +49,6 @@ void main() {
     expect(restored.amount < 0, isTrue);
   });
 
-
 test('current schema is the expected production schema', () {
   expect(LocalStore.currentSchema, 16);
 });
@@ -98,3 +97,4 @@ test('vehicle period report counts payment transactions once', () {
   expect(r.rentalCollected, 10000);
   expect(r.income, 10000);
 });
+}
