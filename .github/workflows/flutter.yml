@@ -1,0 +1,86 @@
+name: Build and verify Android app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_VERSION: 3.35.7
+
+jobs:
+  verify-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Show toolchain
+        run: |
+          flutter --version
+          dart --version
+
+      # The source ZIP is intentionally platform-neutral. This creates the exact
+      # Android wrapper for the Flutter stable SDK used by this CI run.
+      - name: Generate Android platform
+        run: flutter create . --platforms=android --project-name hafeez_rent_a_car --org com.hafeez.rentacar
+
+      - name: Install branded launcher icon
+        run: |
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            mkdir -p "android/app/src/main/res/mipmap-$d"
+            cp assets/app_icon.png "android/app/src/main/res/mipmap-$d/ic_launcher.png"
+            cp assets/app_icon.png "android/app/src/main/res/mipmap-$d/ic_launcher_round.png"
+          done
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Format source
+        run: dart format lib test
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Unit/widget tests
+        run: flutter test
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: hafeez-rent-a-car-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      # After the first successful push, the generated Android wrapper is committed
+      # automatically, so the repository becomes directly buildable on future runs.
+      - name: Commit generated Android project
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android
+          if git diff --cached --quiet; then
+            echo "No generated Android changes to commit"
+          else
+            git commit -m "chore: add verified Android project [skip ci]"
+            git push
+          fi
