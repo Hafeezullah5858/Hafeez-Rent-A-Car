@@ -31,6 +31,62 @@ RentalStatus rentalStatusFrom(String? value) => RentalStatus.values.firstWhere((
 int intValue(dynamic value, [int fallback = 0]) => value is num ? value.toInt() : int.tryParse('$value') ?? fallback;
 double doubleValue(dynamic value, [double fallback = 0]) => value is num ? value.toDouble() : double.tryParse('$value') ?? fallback;
 
+
+class LedgerEntry {
+  final String id, accountId, category, note;
+  final String? vehicleId;
+  final EntryType type;
+  final EarningSource? source;
+  final double amount;
+  final DateTime date;
+  final int schemaVersion, updatedAtMs;
+
+  const LedgerEntry({
+    required this.id,
+    this.accountId = 'local',
+    this.vehicleId = '',
+    required this.type,
+    this.source,
+    required this.category,
+    required this.amount,
+    required this.date,
+    this.note = '',
+    this.schemaVersion = 2,
+    this.updatedAtMs = 0,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'accountId': accountId,
+        'vehicleId': vehicleId,
+        'type': enumName(type),
+        'source': source == null ? null : enumName(source!),
+        'category': category,
+        'amount': amount,
+        'date': date.toIso8601String(),
+        'note': note,
+        'schemaVersion': schemaVersion,
+        'updatedAtMs': updatedAtMs,
+      };
+
+  factory LedgerEntry.fromMap(Map<String, dynamic> m) => LedgerEntry(
+        id: '${m['id'] ?? ''}',
+        accountId: '${m['accountId'] ?? 'local'}',
+        vehicleId: '${m['vehicleId'] ?? ''}',
+        type: entryTypeFrom(m['type']?.toString()),
+        source: earningSourceFrom(m['source']?.toString()),
+        category: '${m['category'] ?? ''}',
+        amount: doubleValue(m['amount']),
+        date: DateTime.tryParse('${m['date'] ?? ''}') ?? DateTime.now(),
+        note: '${m['note'] ?? ''}',
+        schemaVersion: intValue(m['schemaVersion'], 1),
+        updatedAtMs: intValue(
+          m['updatedAtMs'],
+          DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+}
+
 class Vehicle {
   final String id,name,plate,note,model,year,color,fuelType,chassisNumber,engineNumber,insuranceCompany,imagePath;
   final double currentMileage,purchasePrice,marketValue;
@@ -99,7 +155,7 @@ class DriverSettlement {
   factory DriverSettlement.fromMap(Map<String,dynamic> m)=>DriverSettlement(id:'${m['id']??''}',driverId:'${m['driverId']??''}',periodLabel:'${m['periodLabel']??''}',grossEarnings:doubleValue(m['grossEarnings']),salary:doubleValue(m['salary']),commission:doubleValue(m['commission']),advances:doubleValue(m['advances']),deductions:doubleValue(m['deductions']),date:DateTime.tryParse('${m['date']??''}')??DateTime.now(),note:'${m['note']??''}',updatedAtMs:intValue(m['updatedAtMs'],DateTime.now().millisecondsSinceEpoch));
 }
 
-class MaintenanceRecord { final String id,vehicleId,type,workshop,note; final double cost,mileage; final DateTime date,nextService; final int updatedAtMs; const MaintenanceRecord({required this.id,required this.vehicleId,required this.type,required this.cost,required this.date,this.mileage=0,this.workshop='',this.nextService=const DateTime(2100),this.note='',this.updatedAtMs=0}); Map<String,dynamic> toMap()=>{'id':id,'vehicleId':vehicleId,'type':type,'cost':cost,'date':date.toIso8601String(),'mileage':mileage,'workshop':workshop,'nextService':nextService.toIso8601String(),'note':note,'updatedAtMs':updatedAtMs}; factory MaintenanceRecord.fromMap(Map<String,dynamic> m)=>MaintenanceRecord(id:'${m['id']??''}',vehicleId:'${m['vehicleId']??''}',type:'${m['type']??'Service'}',cost:doubleValue(m['cost']),date:DateTime.tryParse('${m['date']??''}')??DateTime.now(),mileage:doubleValue(m['mileage']),workshop:'${m['workshop']??''}',nextService:DateTime.tryParse('${m['nextService']??''}')??DateTime(2100),note:'${m['note']??''}',updatedAtMs:intValue(m['updatedAtMs'],DateTime.now().millisecondsSinceEpoch)); }
+class MaintenanceRecord { final String id,vehicleId,type,workshop,note; final double cost,mileage; final DateTime date,nextService; final int updatedAtMs; const MaintenanceRecord({required this.id,required this.vehicleId,required this.type,required this.cost,required this.date,this.mileage=0,this.workshop='',required this.nextService,this.note='',this.updatedAtMs=0}); Map<String,dynamic> toMap()=>{'id':id,'vehicleId':vehicleId,'type':type,'cost':cost,'date':date.toIso8601String(),'mileage':mileage,'workshop':workshop,'nextService':nextService.toIso8601String(),'note':note,'updatedAtMs':updatedAtMs}; factory MaintenanceRecord.fromMap(Map<String,dynamic> m)=>MaintenanceRecord(id:'${m['id']??''}',vehicleId:'${m['vehicleId']??''}',type:'${m['type']??'Service'}',cost:doubleValue(m['cost']),date:DateTime.tryParse('${m['date']??''}')??DateTime.now(),mileage:doubleValue(m['mileage']),workshop:'${m['workshop']??''}',nextService:DateTime.tryParse('${m['nextService']??''}')??DateTime(2100),note:'${m['note']??''}',updatedAtMs:intValue(m['updatedAtMs'],DateTime.now().millisecondsSinceEpoch)); }
 class FuelRecord { final String id,vehicleId,station,note; final double litres,amount,mileage; final DateTime date; final int updatedAtMs; const FuelRecord({required this.id,required this.vehicleId,required this.litres,required this.amount,required this.date,this.mileage=0,this.station='',this.note='',this.updatedAtMs=0}); Map<String,dynamic> toMap()=>{'id':id,'vehicleId':vehicleId,'litres':litres,'amount':amount,'date':date.toIso8601String(),'mileage':mileage,'station':station,'note':note,'updatedAtMs':updatedAtMs}; factory FuelRecord.fromMap(Map<String,dynamic> m)=>FuelRecord(id:'${m['id']??''}',vehicleId:'${m['vehicleId']??''}',litres:doubleValue(m['litres']),amount:doubleValue(m['amount']),date:DateTime.tryParse('${m['date']??''}')??DateTime.now(),mileage:doubleValue(m['mileage']),station:'${m['station']??''}',note:'${m['note']??''}',updatedAtMs:intValue(m['updatedAtMs'],DateTime.now().millisecondsSinceEpoch)); }
 
 
