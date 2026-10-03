@@ -7338,7 +7338,6 @@ Future<void> showDriverDialog(
   bool active = existing?.active ?? true;
   await showDialog(
     context: context,
-    isScrollControlled: true,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, set) => AlertDialog(
         title: Text(existing == null ? 'Add driver' : 'Edit driver'),
