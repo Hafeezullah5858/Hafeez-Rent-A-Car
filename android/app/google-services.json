@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "553391648499",
+    "project_id": "foododer-f8e83",
+    "storage_bucket": "foododer-f8e83.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553391648499:android:3a0e07c6ef237f9a159186",
+        "android_client_info": {
+          "package_name": "Com.Foododer.App"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzXGtpfVmu8KcRli-K4NCm8HoXbejGq64"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553391648499:android:d5d7a0610da67978159186",
+        "android_client_info": {
+          "package_name": "com.hafeez.rentacar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzXGtpfVmu8KcRli-K4NCm8HoXbejGq64"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

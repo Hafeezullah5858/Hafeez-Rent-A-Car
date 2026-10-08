@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -69,7 +70,7 @@ class AuthUser {
   factory AuthUser.fromJson(Map<String,dynamic> j)=>AuthUser(id:j['id']??'',name:j['name']??'',password:j['password']??'',role:j['role']??'Customer',phone:j['phone']??'',email:j['email']??'',cnic:j['cnic']??'',address:j['address']??'',verified:j['verified']??false);
 }
 
-void main()=>runApp(const HafeezApp());
+Future<void> main() async { WidgetsFlutterBinding.ensureInitialized(); await Firebase.initializeApp(); runApp(const HafeezApp()); }
 class HafeezApp extends StatefulWidget{const HafeezApp({super.key});@override State<HafeezApp> createState()=>_AppState();}
 class _AppState extends State<HafeezApp>{
  bool ready=false; String role=''; String loggedId=''; String email='admin@hafeezrentacar.com',password='123456';
